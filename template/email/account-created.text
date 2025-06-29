@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Account Created</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f7f7f7; margin: 0; padding: 0; }
+    .container { background: #fff; max-width: 600px; margin: 40px auto; padding: 32px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    h2 { color: #2d3748; }
+    .info { background: #f1f5f9; padding: 16px; border-radius: 6px; margin: 24px 0; }
+    .label { color: #718096; font-size: 13px; }
+    .value { font-size: 16px; color: #2d3748; margin-bottom: 8px; }
+    .footer { color: #888; font-size: 13px; margin-top: 32px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Welcome, <%= firstName %>!</h2>
+    <p>Your account has been successfully created. Below are your login details:</p>
+    <div class="info">
+      <div class="label">Email:</div>
+      <div class="value"><%= email %></div>
+      <div class="label">Temporary Password:</div>
+      <div class="value"><%= password %></div>
+      <div class="label">Role:</div>
+      <div class="value"><%= role %></div>
+    </div>
+    <p>For security, please log in and change your password as soon as possible.</p>
+    <div class="footer">
+      If you have any questions or need assistance, please contact our support team.<br>
+      Thank you for joining us!<br>
+      <strong>Your Company Team</strong>
+    </div>
+  </div>
+</body>
+</html> 
