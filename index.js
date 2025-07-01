@@ -8,10 +8,10 @@ dotenv.config();
 import cors from 'cors'
 const app = express()
 const port = 5000
-app.use(cors())
-// app.get('/', (req, res) => {
-//   res.send('Hello World!')
-// })
+app.use(cors({
+  origin: ['https://app.strategemmedia.com'],
+  credentials: true,
+}));
 app.use(express.json({ limit: "10mb" }));  // for JSON (e.g., Base64 image)
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(express.json());
