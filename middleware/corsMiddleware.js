@@ -1,20 +1,18 @@
 import cors from 'cors';
+
 const corsOptions = {
-  credentials: true,
   origin: function (origin, callback) {
-    const allowedOrigins = [
-      'https://app.strategemmedia.com',
-    ];
+    const allowedOrigins = ['https://app.strategemmedia.com'];
     if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, origin);
+      callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-  allowedHeaders: 'Authorization, Content-Type, X-Requested-With',
+  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
+  allowedHeaders: ['Authorization', 'Content-Type', 'X-Requested-With'],
+  credentials: true,
   optionsSuccessStatus: 204,
 };
 
-const corsMiddleware = cors(corsOptions);
-export default corsMiddleware; 
+export default cors(corsOptions);

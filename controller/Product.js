@@ -2,31 +2,90 @@ import Product from "../model/product.js";
 import cloudinary from "../utlils/cloudinary.js";
 import { asyncHandler } from "../utlils/globalutils.js";
 
+import pkg from 'validator';
+const { isURL } = pkg;
 
-export const createProduct = async (req, res) => {    
-	try {
-		const {title, image, category,videoUrl } = req.body;
+export const createProduct = async (req, res) => {
+  try {
+    const { title, image, category, videoUrl } = req.body;
 
-		let cloudinaryResponse = null;
+    // Validate required fields
+    if (!title || !category || !videoUrl) {
+      return res.status(400).json({ 
+        message: "Title, category, and videoUrl are required fields" 
+      });
+    }
 
-		if (image) {
-			cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
-		}
+    let finalImageUrl = "";
 
-		const product = await Product.create({
-			
-			title,
-			videoUrl,
-			image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
-			category,
-		});
+    // ✅ Handle image (URL, base64, or file upload)
+    if (image) {
+      // Check if it's a valid URL (external image link)
+      if (isURL(image)) {
+        finalImageUrl = image;
+      }
+      // Else upload to Cloudinary (base64 or file)
+      else {
+        let uploadOptions = {
+          folder: "products",
+        };
 
-		res.status(201).json(product);
-	} catch (error) {
-		console.log("Error in createProduct controller", error.message);
-		res.status(500).json({ message: "Server error", error: error.message });
-	}
+        // If it's a base64 string, add the data URI prefix
+        if (image.startsWith('data:')) {
+          uploadOptions.resource_type = 'auto';
+        }
+
+        const cloudinaryResponse = await cloudinary.uploader.upload(image, uploadOptions);
+        finalImageUrl = cloudinaryResponse.secure_url;
+      }
+    } else {
+      // If no image provided, return error since image is required in model
+      return res.status(400).json({ 
+        message: "Image is required" 
+      });
+    }
+
+    const product = await Product.create({
+      title,
+      videoUrl,
+      image: finalImageUrl,
+      category,
+    });
+
+    res.status(201).json(product);
+  } catch (error) {
+    console.log("Error in createProduct controller", error);
+    res.status(500).json({ 
+      message: "Server error", 
+      error: error.message || "Unknown error occurred" 
+    });
+  }
 };
+
+// export const createProduct = async (req, res) => {    
+// 	try {
+// 		const {title, image, category,videoUrl } = req.body;
+
+// 		let cloudinaryResponse = null;
+
+// 		if (image) {
+// 			cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
+// 		}
+
+// 		const product = await Product.create({
+			
+// 			title,
+// 			videoUrl,
+// 			image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
+// 			category,
+// 		});
+
+// 		res.status(201).json(product);
+// 	} catch (error) {
+// 		console.log("Error in createProduct controller", error.message);
+// 		res.status(500).json({ message: "Server error", error: error.message });
+// 	}
+// };
 
  export const getAllProduct = asyncHandler(async(req,res)=>{
     const product = await Product.find();

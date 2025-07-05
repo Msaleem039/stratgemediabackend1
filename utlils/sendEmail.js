@@ -7,18 +7,17 @@ import { fileURLToPath } from 'url';
 const sendEmail = async (options) => {
   try {
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: process.env.SMTP_SECURE === 'true',
+      host: 'smtp.hostinger.com',
+      port: 465,
+      secure: true,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
+        user: 'info@strategemmedia.com',
+        pass: 'Saleem4321@',
       },
     });
 
     let html = '';
 
-    // If templatePath is provided and is a non-empty string, use template rendering
     if (
       typeof options.templatePath === 'string' &&
       options.templatePath.trim() !== ''
@@ -36,7 +35,7 @@ const sendEmail = async (options) => {
     }
 
     const mailOptions = {
-      from: process.env.SMTP_MAIL,
+      from: '"Strategem Media" <info@strategemmedia.com>',
       to: options.email,
       subject: options.subject,
       html,
@@ -44,9 +43,9 @@ const sendEmail = async (options) => {
     };
 
     await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully!');
+    console.log('✅ Email sent successfully!');
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('❌ Error sending email:', error);
     throw error;
   }
 };
