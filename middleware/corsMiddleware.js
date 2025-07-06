@@ -2,7 +2,7 @@ import cors from 'cors';
 
 const corsOptions = {
   origin: function (origin, callback) {
-    const allowedOrigins = ['https://app.strategemmedia.com'];
+    const allowedOrigins = ['https://app.strategemmedia.com','http://localhost:5173'];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {

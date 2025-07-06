@@ -72,8 +72,9 @@
       <div class="label">Assigned Role</div>
       <div class="value"><%= role %></div>
     </div>
-
-    <p>🔒 For your security, please log in and change your password as soon as possible.</p>
+     Visit app.StrategemMedia.com
+    <p>Then
+Enter your email and password</p>
 
     <div class="footer">
       If you have any questions or need help, feel free to contact our support team.<br>
