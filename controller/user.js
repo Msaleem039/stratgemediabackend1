@@ -158,81 +158,15 @@ import crypto from 'crypto';
 //   });
 
 export const registerUser = catchAsyncError(async (req, res) => {
-  const { name, email, phone, role } = req.body;
+  const { name, email, phone, role, password } = req.body;
 
   // Basic field check
-  if (!name || !email || !role) {
+  if (!name || !email) {
     return sendResponse(res, {
       success: false,
       statusCode: 400,
-      message: 'Please provide name, email, and role',
+      message: 'Please provide name and email',
     });
-  }
-
-  // Role validation
-  const validRoles = ['superadmin', 'admin', 'user'];
-  if (!validRoles.includes(role)) {
-    return sendResponse(res, {
-      success: false,
-      statusCode: 400,
-      message: 'Role must be superadmin, admin, or user',
-    });
-  }
-
-  // Check if phone is required for admin/users
-  if ((role === 'admin' || role === 'user') && !phone) {
-    return sendResponse(res, {
-      success: false,
-      statusCode: 400,
-      message: 'Phone number is required for admin and user roles',
-    });
-  }
-
-  const superadminExists = await User.exists({ role: 'superadmin' });
-
-  // Handle superadmin creation
-  if (role === 'superadmin') {
-    if (superadminExists) {
-      return sendResponse(res, {
-        success: false,
-        statusCode: 403,
-        message: 'Superadmin already exists. Cannot create another.',
-      });
-    }
-    
-    // For additional security, you might want to add a special secret check here
-    // for initial superadmin creation
-  } 
-  // For admin/user creation, require superadmin authorization
-  else {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return sendResponse(res, {
-        success: false,
-        statusCode: 401,
-        message: 'Unauthorized: No token provided',
-      });
-    }
-    
-    const token = authHeader.split(' ')[1];
-    let decoded;
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      return sendResponse(res, {
-        success: false,
-        statusCode: 401,
-        message: 'Unauthorized: Invalid token',
-      });
-    }
-    
-    if (decoded.role !== 'superadmin') {
-      return sendResponse(res, {
-        success: false,
-        statusCode: 403,
-        message: 'Forbidden: Only superadmin can create users',
-      });
-    }
   }
 
   // Check if email or phone already used
@@ -252,16 +186,16 @@ export const registerUser = catchAsyncError(async (req, res) => {
     });
   }
 
-  // Generate random 8-character password
-  const generatedPassword = Math.random().toString(36).slice(-8);
+  // Use provided password or generate random 8-character password
+  const userPassword = password || Math.random().toString(36).slice(-8);
 
   // Create and save user
   const user = new User({
     name,
     email,
     phone,
-    role,
-    password: generatedPassword,
+    role: role || 'user',
+    password: userPassword,
   });
 
   await user.save();
@@ -274,7 +208,7 @@ export const registerUser = catchAsyncError(async (req, res) => {
     templateData: {
       firstName: user.name.split(' ')[0],
       email: user.email,
-      password: generatedPassword,
+      password: userPassword,
       role: user.role,
     },
   });
