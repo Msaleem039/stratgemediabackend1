@@ -4,63 +4,62 @@ import { asyncHandler } from "../utlils/globalutils.js";
 
 import pkg from 'validator';
 const { isURL } = pkg;
+import formidable from 'express-formidable';
 
 export const createProduct = async (req, res) => {
   try {
-    const { title, image, category, videoUrl } = req.body;
+    const { title, category, videoUrl } = req.fields;
+    const imageFile = req.files?.image;
+    const videoFile = req.files?.videoFile;
 
-    // Validate required fields
-    if (!title || !category || !videoUrl) {
-      return res.status(400).json({ 
-        message: "Title, category, and videoUrl are required fields" 
-      });
+    if (!title || !category) {
+      return res.status(400).json({ message: "Title and category are required" });
     }
 
     let finalImageUrl = "";
+    let finalVideoUrl = "";
 
-    // ✅ Handle image (URL, base64, or file upload)
-    if (image) {
-      // Check if it's a valid URL (external image link)
-      if (isURL(image)) {
-        finalImageUrl = image;
-      }
-      // Else upload to Cloudinary (base64 or file)
-      else {
-        let uploadOptions = {
-          folder: "products",
-        };
-
-        // If it's a base64 string, add the data URI prefix
-        if (image.startsWith('data:')) {
-          uploadOptions.resource_type = 'auto';
-        }
-
-        const cloudinaryResponse = await cloudinary.uploader.upload(image, uploadOptions);
-        finalImageUrl = cloudinaryResponse.secure_url;
-      }
-    } else {
-      // If no image provided, return error since image is required in model
-      return res.status(400).json({ 
-        message: "Image is required" 
+    // Handle image (Cloudinary upload or external URL)
+    if (req.fields.image && isURL(req.fields.image)) {
+      // If image is provided as URL
+      finalImageUrl = req.fields.image;
+    } else if (imageFile) {
+      // If image is uploaded as file
+      const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+        folder: "products",
+        resource_type: "auto",
       });
+      finalImageUrl = imageUpload.secure_url;
+    } else {
+      return res.status(400).json({ message: "Image is required" });
+    }
+
+    // Handle video (external URL or uploaded file)
+    if (videoUrl && isURL(videoUrl)) {
+      finalVideoUrl = videoUrl;
+    } else if (videoFile) {
+      const videoUpload = await cloudinary.uploader.upload(videoFile.path, {
+        folder: "products/videos",
+        resource_type: "video",
+      });
+      finalVideoUrl = videoUpload.secure_url;
     }
 
     const product = await Product.create({
       title,
-      videoUrl,
-      image: finalImageUrl,
       category,
+      image: finalImageUrl,
+      videoUrl: finalVideoUrl || null,
+      // videoFile: finalVideoUrl || null, // optional: you can remove this if redundant
     });
 
     res.status(201).json(product);
   } catch (error) {
-    console.log("Error in createProduct controller", error);
-    res.status(500).json({ 
-      message: "Server error", 
-      error: error.message || "Unknown error occurred" 
-    });
+    console.error("Error in createProduct:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };
+
 
 // export const createProduct = async (req, res) => {    
 // 	try {

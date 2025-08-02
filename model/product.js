@@ -3,21 +3,28 @@ import mongoose from "mongoose";
 const productSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true, // Add this if you want to enforce title
+    required: true,
     trim: true,
   },
   videoUrl: {
     type: String,
-    required: true,
+    required: false, // Optional
+    trim: true,
   },
+  videoFile: {
+    type: String,
+    required: false, // Optional
+    trim: true,
+  },
+  
   category: {
     type: String,
-    required: true, // Recommended to make it required
+    required: true,
     trim: true,
   },
   image: {
     type: String,
-    required: true, // Recommended to make image required
+    required: true,
   },
   createdAt: {
     type: Date,
