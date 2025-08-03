@@ -20,6 +20,10 @@ app.use("/api", routes)
 app.use("/api", productRoutes)
 app.use("/api",paymentRoutes)
 DBconnection();
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`)
-})
+// app.listen(port, () => {
+//   console.log(`Example app listening on port ${port}`)
+  app.listen(port, '127.0.0.1', () => {
+    console.log(`Example app listening on port ${port}`)
+  }); // Force IPv4
+
+// })
