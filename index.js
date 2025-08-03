@@ -6,7 +6,7 @@ import paymentRoutes from './routes/paymentRoutes.js'
 import dotenv from "dotenv";
 dotenv.config();
 import corsMiddleware from './middleware/corsMiddleware.js'
-import formidable from 'express-formidable';
+
 const app = express()
 const port = 5000
 app.use(corsMiddleware);
