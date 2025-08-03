@@ -451,7 +451,7 @@ export const deleteUser = catchAsyncError(async (req, res) => {
       data: user,
     });
   });
-  export const getAllUsers = async (req, res) => {
+  export const getAllUsers = asyncHandler(async (req, res) => {
     try {
       // Pagination query params
       const page = parseInt(req.query.page) || 1;
@@ -497,7 +497,7 @@ export const deleteUser = catchAsyncError(async (req, res) => {
         error: error.message,
       });
     }
-  };
+  });
   export const updateProfile = catchAsyncError(async (req, res) => {
     const { name, email } = req.body;
     const updateData = {};

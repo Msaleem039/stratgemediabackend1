@@ -6,7 +6,7 @@ import pkg from 'validator';
 const { isURL } = pkg;
 import formidable from 'express-formidable';
 
-export const createProduct = async (req, res) => {
+export const createProduct = asyncHandler (async(req, res) => {
   try {
     const { title, category, videoUrl } = req.fields;
     const imageFile = req.files?.image;
@@ -58,7 +58,7 @@ export const createProduct = async (req, res) => {
     console.error("Error in createProduct:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
-};
+});
 
 
 // export const createProduct = async (req, res) => {    
@@ -111,7 +111,7 @@ const { id } = req.params;
  }
  }
 
-export const updateProduct = async (req, res) => {
+export const updateProduct = asyncHandler (async(req, res) => {
     try {
         const { id } = req.params;
         const { title, image, category, videoUrl } = req.body;
@@ -167,9 +167,9 @@ export const updateProduct = async (req, res) => {
             error: error.message
         });
     }
-};
+});
 
-export const deleteProduct = async (req, res) => {
+export const deleteProduct = asyncHandler (async(req, res) => {
     try {
         const { id } = req.params;
 
@@ -204,4 +204,4 @@ export const deleteProduct = async (req, res) => {
             error: error.message
         });
     }
-};
+});
