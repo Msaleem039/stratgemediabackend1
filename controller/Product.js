@@ -50,7 +50,7 @@ export const createProduct = async (req, res) => {
       category,
       image: finalImageUrl,
       videoUrl: finalVideoUrl || null,
-      // videoFile: finalVideoUrl || null, // optional: you can remove this if redundant
+
     });
 
     res.status(201).json(product);
