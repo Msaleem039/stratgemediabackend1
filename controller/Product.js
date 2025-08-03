@@ -4,7 +4,7 @@ import { asyncHandler } from "../utlils/globalutils.js";
 
 import pkg from 'validator';
 const { isURL } = pkg;
-import formidable from 'express-formidable';
+
 
 export const createProduct = asyncHandler (async(req, res) => {
   try {
