@@ -6,11 +6,21 @@ import pkg from 'validator';
 const { isURL } = pkg;
 
 
-export const createProduct = asyncHandler (async(req, res) => {
+export const createProduct = asyncHandler(async (req, res) => {
   try {
-    const { title, category, videoUrl } = req.fields;
+    // Normalize fields
+    const title = Array.isArray(req.fields.title) ? req.fields.title[0] : req.fields.title;
+    const category = Array.isArray(req.fields.category) ? req.fields.category[0] : req.fields.category;
+    const videoUrl = Array.isArray(req.fields.videoUrl) ? req.fields.videoUrl[0] : req.fields.videoUrl;
+
     const imageFile = req.files?.image;
     const videoFile = req.files?.videoFile;
+
+    console.log("here");
+    console.log(JSON.stringify(imageFile, null, 2));
+    console.log("title", title);
+    console.log("cat", category);
+    console.log(JSON.stringify(videoFile, null, 2));
 
     if (!title || !category) {
       return res.status(400).json({ message: "Title and category are required" });
@@ -25,7 +35,7 @@ export const createProduct = asyncHandler (async(req, res) => {
       finalImageUrl = req.fields.image;
     } else if (imageFile) {
       // If image is uploaded as file
-      const imageUpload = await cloudinary.uploader.upload(imageFile.path, {
+      const imageUpload = await cloudinary.uploader.upload(imageFile[0].filepath, {
         folder: "products",
         resource_type: "auto",
       });
@@ -38,7 +48,7 @@ export const createProduct = asyncHandler (async(req, res) => {
     if (videoUrl && isURL(videoUrl)) {
       finalVideoUrl = videoUrl;
     } else if (videoFile) {
-      const videoUpload = await cloudinary.uploader.upload(videoFile.path, {
+      const videoUpload = await cloudinary.uploader.upload(videoFile[0].filepath, {
         folder: "products/videos",
         resource_type: "video",
       });
@@ -50,7 +60,6 @@ export const createProduct = asyncHandler (async(req, res) => {
       category,
       image: finalImageUrl,
       videoUrl: finalVideoUrl || null,
-
     });
 
     res.status(201).json(product);
@@ -59,6 +68,7 @@ export const createProduct = asyncHandler (async(req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 
 
 // export const createProduct = async (req, res) => {    
