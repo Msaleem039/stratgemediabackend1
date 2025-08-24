@@ -8,34 +8,59 @@ const { isURL } = pkg;
 
 export const createProduct = asyncHandler(async (req, res) => {
   try {
-    // Normalize fields
-    const title = Array.isArray(req.fields.title) ? req.fields.title[0] : req.fields.title;
-    const category = Array.isArray(req.fields.category) ? req.fields.category[0] : req.fields.category;
-    const videoUrl = Array.isArray(req.fields.videoUrl) ? req.fields.videoUrl[0] : req.fields.videoUrl;
+    // Helper function to safely extract string values
+    const extractString = (value) => {
+      if (Array.isArray(value)) {
+        return value[0] || '';
+      }
+      return value || '';
+    };
 
-    const imageFile = req.files?.image;
-    const videoFile = req.files?.videoFile;
+    // Handle both form-data and JSON
+    let title, category, videoUrl, image;
+    let imageFile, videoFile;
+
+    if (req.fields) {
+      // Form-data
+      title = extractString(req.fields.title);
+      category = extractString(req.fields.category);
+      videoUrl = extractString(req.fields.videoUrl);
+      image = extractString(req.fields.image);
+      imageFile = req.files?.image;
+      videoFile = req.files?.videoFile;
+    } else {
+      // JSON data
+      title = extractString(req.body.title);
+      category = extractString(req.body.category);
+      videoUrl = extractString(req.body.videoUrl);
+      image = extractString(req.body.image);
+    }
 
     console.log("=== DEBUG INFO ===");
-    console.log("title:", title);
-    console.log("category:", category);
-    console.log("videoUrl:", videoUrl);
-    console.log("imageFile:", imageFile ? "Present" : "Not present");
-    console.log("videoFile:", videoFile ? "Present" : "Not present");
+    console.log("title:", title, "type:", typeof title);
+    console.log("category:", category, "type:", typeof category);
+    console.log("videoUrl:", videoUrl, "type:", typeof videoUrl);
+    console.log("image:", image, "type:", typeof image);
+    console.log("req.body:", req.body);
     console.log("req.fields:", req.fields);
     console.log("==================");
 
-    if (!title || !category) {
-      return res.status(400).json({ message: "Title and category are required" });
+    // Validate required fields
+    if (!title || typeof title !== 'string') {
+      return res.status(400).json({ message: "Title must be a valid string" });
+    }
+    
+    if (!category || typeof category !== 'string') {
+      return res.status(400).json({ message: "Category must be a valid string" });
     }
 
     let finalImageUrl = "";
     let finalVideoUrl = "";
 
     // Handle image (Cloudinary upload or external URL)
-    if (req.fields.image && isURL(req.fields.image)) {
+    if (image && isURL(image)) {
       // If image is provided as URL
-      finalImageUrl = req.fields.image;
+      finalImageUrl = image;
     } else if (imageFile) {
       // If image is uploaded as file
       const imageUpload = await cloudinary.uploader.upload(imageFile[0].filepath, {
