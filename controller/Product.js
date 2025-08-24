@@ -43,6 +43,8 @@ export const createProduct = asyncHandler(async (req, res) => {
     console.log("image:", image, "type:", typeof image);
     console.log("req.body:", req.body);
     console.log("req.fields:", req.fields);
+    console.log("All req.fields keys:", req.fields ? Object.keys(req.fields) : "No fields");
+    console.log("All req.body keys:", Object.keys(req.body));
     console.log("==================");
 
     // Validate required fields
@@ -58,18 +60,24 @@ export const createProduct = asyncHandler(async (req, res) => {
     let finalVideoUrl = "";
 
     // Handle image (Cloudinary upload or external URL)
+    console.log("Processing image:", image);
+    console.log("Is URL check:", image && isURL(image));
+    
     if (image && isURL(image)) {
       // If image is provided as URL
+      console.log("Using image URL:", image);
       finalImageUrl = image;
     } else if (imageFile) {
       // If image is uploaded as file
+      console.log("Uploading image file to Cloudinary");
       const imageUpload = await cloudinary.uploader.upload(imageFile[0].filepath, {
         folder: "products",
         resource_type: "auto",
       });
       finalImageUrl = imageUpload.secure_url;
     } else {
-      return res.status(400).json({ message: "Image is required" });
+      console.log("No valid image provided");
+      return res.status(400).json({ message: "Image is required (URL or file)" });
     }
 
     // Handle video (external URL or uploaded file)
