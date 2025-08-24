@@ -12,27 +12,55 @@ export const createProduct = asyncHandler(async (req, res) => {
     let title, category, videoUrl, image;
     let imageFile, videoFile;
 
+    // Helper function to safely extract string values
+    const extractString = (value) => {
+      if (Array.isArray(value)) {
+        return value[0] || '';
+      }
+      return value || '';
+    };
+
     // Check if it's form-data (file upload) or JSON
     if (req.fields) {
       // Form-data
-      title = Array.isArray(req.fields.title) ? req.fields.title[0] : req.fields.title;
-      category = Array.isArray(req.fields.category) ? req.fields.category[0] : req.fields.category;
-      videoUrl = Array.isArray(req.fields.videoUrl) ? req.fields.videoUrl[0] : req.fields.videoUrl;
-      image = Array.isArray(req.fields.image) ? req.fields.image[0] : req.fields.image;
+      title = extractString(req.fields.title);
+      category = extractString(req.fields.category);
+      videoUrl = extractString(req.fields.videoUrl);
+      image = extractString(req.fields.image);
       imageFile = req.files?.image;
       videoFile = req.files?.videoFile;
     } else {
-      // JSON data
-      title = req.body.title;
-      category = req.body.category;
-      videoUrl = req.body.videoUrl;
-      image = req.body.image;
+      // JSON data - also handle potential arrays
+      title = extractString(req.body.title);
+      category = extractString(req.body.category);
+      videoUrl = extractString(req.body.videoUrl);
+      image = extractString(req.body.image);
     }
 
-   
+    console.log("=== DEBUG INFO ===");
+    console.log("title:", title, "type:", typeof title);
+    console.log("category:", category, "type:", typeof category);
+    console.log("videoUrl:", videoUrl, "type:", typeof videoUrl);
+    console.log("image:", image, "type:", typeof image);
+    console.log("req.body:", req.body);
+    console.log("req.fields:", req.fields);
+    console.log("==================");
 
-    if (!title || !category) {
-      return res.status(400).json({ message: "Title and category are required" });
+    // Validate that we have strings, not arrays or other types
+    if (!title || typeof title !== 'string') {
+      return res.status(400).json({ message: "Title must be a valid string" });
+    }
+    
+    if (!category || typeof category !== 'string') {
+      return res.status(400).json({ message: "Category must be a valid string" });
+    }
+
+    if (videoUrl && typeof videoUrl !== 'string') {
+      return res.status(400).json({ message: "Video URL must be a valid string" });
+    }
+
+    if (image && typeof image !== 'string') {
+      return res.status(400).json({ message: "Image must be a valid string" });
     }
 
     let finalImageUrl = "";
