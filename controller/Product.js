@@ -8,19 +8,28 @@ const { isURL } = pkg;
 
 export const createProduct = asyncHandler(async (req, res) => {
   try {
-    // Normalize fields
-    const title = Array.isArray(req.fields.title) ? req.fields.title[0] : req.fields.title;
-    const category = Array.isArray(req.fields.category) ? req.fields.category[0] : req.fields.category;
-    const videoUrl = Array.isArray(req.fields.videoUrl) ? req.fields.videoUrl[0] : req.fields.videoUrl;
+    // Handle both JSON and form-data
+    let title, category, videoUrl, image;
+    let imageFile, videoFile;
 
-    const imageFile = req.files?.image;
-    const videoFile = req.files?.videoFile;
+    // Check if it's form-data (file upload) or JSON
+    if (req.fields) {
+      // Form-data
+      title = Array.isArray(req.fields.title) ? req.fields.title[0] : req.fields.title;
+      category = Array.isArray(req.fields.category) ? req.fields.category[0] : req.fields.category;
+      videoUrl = Array.isArray(req.fields.videoUrl) ? req.fields.videoUrl[0] : req.fields.videoUrl;
+      image = Array.isArray(req.fields.image) ? req.fields.image[0] : req.fields.image;
+      imageFile = req.files?.image;
+      videoFile = req.files?.videoFile;
+    } else {
+      // JSON data
+      title = req.body.title;
+      category = req.body.category;
+      videoUrl = req.body.videoUrl;
+      image = req.body.image;
+    }
 
-    console.log("here");
-    console.log(JSON.stringify(imageFile, null, 2));
-    console.log("title", title);
-    console.log("cat", category);
-    console.log(JSON.stringify(videoFile, null, 2));
+   
 
     if (!title || !category) {
       return res.status(400).json({ message: "Title and category are required" });
@@ -30,9 +39,9 @@ export const createProduct = asyncHandler(async (req, res) => {
     let finalVideoUrl = "";
 
     // Handle image (Cloudinary upload or external URL)
-    if (req.fields.image && isURL(req.fields.image)) {
+    if (image && isURL(image)) {
       // If image is provided as URL
-      finalImageUrl = req.fields.image;
+      finalImageUrl = image;
     } else if (imageFile) {
       // If image is uploaded as file
       const imageUpload = await cloudinary.uploader.upload(imageFile[0].filepath, {
@@ -45,8 +54,12 @@ export const createProduct = asyncHandler(async (req, res) => {
     }
 
     // Handle video (external URL or uploaded file)
-    if (videoUrl && isURL(videoUrl)) {
-      finalVideoUrl = videoUrl;
+    if (videoUrl) {
+      if (isURL(videoUrl)) {
+        finalVideoUrl = videoUrl;
+      } else {
+        return res.status(400).json({ message: "Invalid video URL format" });
+      }
     } else if (videoFile) {
       const videoUpload = await cloudinary.uploader.upload(videoFile[0].filepath, {
         folder: "products/videos",
