@@ -8,93 +8,63 @@ const { isURL } = pkg;
 
 export const createProduct = asyncHandler(async (req, res) => {
   try {
-    // Helper function to safely extract string values
-    const extractString = (value) => {
-      if (Array.isArray(value)) {
-        return value[0] || '';
+    // Normalize incoming fields (formidable v3 always gives arrays)
+    const normalizeFields = (obj = {}) => {
+      const out = {};
+      for (const [key, value] of Object.entries(obj)) {
+        out[key] = Array.isArray(value) ? value[0] : value;
       }
-      return value || '';
+      return out;
     };
 
-    // Handle both form-data and JSON
-    let title, category, videoUrl, image;
-    let imageFile, videoFile;
+    const fields = req.fields ? normalizeFields(req.fields) : normalizeFields(req.body);
+    const files = req.files || {};
 
-    if (req.fields) {
-      // Form-data
-      title = extractString(req.fields.title);
-      category = extractString(req.fields.category);
-      videoUrl = extractString(req.fields.videoUrl);
-      image = extractString(req.fields.image);
-      imageFile = req.files?.image;
-      videoFile = req.files?.videoFile;
-    } else {
-      // JSON data
-      title = extractString(req.body.title);
-      category = extractString(req.body.category);
-      videoUrl = extractString(req.body.videoUrl);
-      image = extractString(req.body.image);
-    }
+    const { title, category, videoUrl, image } = fields;
+    const imageFile = files.image?.[0];
+    const videoFile = files.videoFile?.[0];
 
+    // Debug log
     console.log("=== DEBUG INFO ===");
-    console.log("title:", title, "type:", typeof title);
-    console.log("category:", category, "type:", typeof category);
-    console.log("videoUrl:", videoUrl, "type:", typeof videoUrl);
-    console.log("image:", image, "type:", typeof image);
-    console.log("req.body:", req.body);
-    console.log("req.fields:", req.fields);
-    console.log("All req.fields keys:", req.fields ? Object.keys(req.fields) : "No fields");
-    console.log("All req.body keys:", Object.keys(req.body));
+    console.log("Fields:", fields);
+    console.log("Files:", Object.keys(files));
     console.log("==================");
 
     // Validate required fields
-    if (!title || typeof title !== 'string') {
-      return res.status(400).json({ message: "Title must be a valid string" });
-    }
-    
-    if (!category || typeof category !== 'string') {
-      return res.status(400).json({ message: "Category must be a valid string" });
-    }
+    if (!title) return res.status(400).json({ message: "Title is required" });
+    if (!category) return res.status(400).json({ message: "Category is required" });
 
     let finalImageUrl = "";
     let finalVideoUrl = "";
 
-    // Handle image (Cloudinary upload or external URL)
-    console.log("Processing image:", image);
-    console.log("Is URL check:", image && isURL(image));
-    
+    // ---- Handle image ----
     if (image && isURL(image)) {
-      // If image is provided as URL
-      console.log("Using image URL:", image);
-      finalImageUrl = image;
+      finalImageUrl = image; // URL provided
     } else if (imageFile) {
-      // If image is uploaded as file
-      console.log("Uploading image file to Cloudinary");
-      const imageUpload = await cloudinary.uploader.upload(imageFile[0].filepath, {
+      const upload = await cloudinary.uploader.upload(imageFile.filepath, {
         folder: "products",
         resource_type: "auto",
       });
-      finalImageUrl = imageUpload.secure_url;
+      finalImageUrl = upload.secure_url;
     } else {
-      console.log("No valid image provided");
       return res.status(400).json({ message: "Image is required (URL or file)" });
     }
 
-    // Handle video (external URL or uploaded file)
+    // ---- Handle video ----
     if (videoUrl) {
-      if (isURL(videoUrl)) {
-        finalVideoUrl = videoUrl;
-      } else {
+      if (!isURL(videoUrl)) {
         return res.status(400).json({ message: "Invalid video URL format" });
       }
+      finalVideoUrl = videoUrl;
     } else if (videoFile) {
-      const videoUpload = await cloudinary.uploader.upload(videoFile[0].filepath, {
+      const upload = await cloudinary.uploader.upload(videoFile.filepath, {
         folder: "products/videos",
         resource_type: "video",
       });
-      finalVideoUrl = videoUpload.secure_url;
+      finalVideoUrl = upload.secure_url;
     }
 
+    // ---- Save to DB ----
     const product = await Product.create({
       title,
       category,
@@ -102,39 +72,16 @@ export const createProduct = asyncHandler(async (req, res) => {
       videoUrl: finalVideoUrl || null,
     });
 
+    console.log("✅ Product created:", product._id);
+
     res.status(201).json(product);
   } catch (error) {
-    console.error("Error in createProduct:", error);
+    console.error("❌ Error in createProduct:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
 
-
-// export const createProduct = async (req, res) => {    
-// 	try {
-// 		const {title, image, category,videoUrl } = req.body;
-
-// 		let cloudinaryResponse = null;
-
-// 		if (image) {
-// 			cloudinaryResponse = await cloudinary.uploader.upload(image, { folder: "products" });
-// 		}
-
-// 		const product = await Product.create({
-			
-// 			title,
-// 			videoUrl,
-// 			image: cloudinaryResponse?.secure_url ? cloudinaryResponse.secure_url : "",
-// 			category,
-// 		});
-
-// 		res.status(201).json(product);
-// 	} catch (error) {
-// 		console.log("Error in createProduct controller", error.message);
-// 		res.status(500).json({ message: "Server error", error: error.message });
-// 	}
-// };
 
  export const getAllProduct = asyncHandler(async(req,res)=>{
     const product = await Product.find();
