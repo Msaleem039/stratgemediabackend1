@@ -8,39 +8,51 @@ const { isURL } = pkg;
 
 export const createProduct = asyncHandler(async (req, res) => {
   try {
-    // Normalize incoming fields (formidable v3 always gives arrays)
+    /**
+     * Helper: Normalize Formidable fields
+     * Formidable v3 always returns arrays, even for single values.
+     * Example: { title: ["My Title"] } → becomes { title: "My Title" }
+     */
     const normalizeFields = (obj = {}) => {
       const out = {};
       for (const [key, value] of Object.entries(obj)) {
-        out[key] = Array.isArray(value) ? value[0] : value;
+        out[key] = Array.isArray(value) ? value[0] : value; 
       }
       return out;
     };
 
+    // Normalize fields coming from formidable (multipart) or body (JSON fallback)
     const fields = req.fields ? normalizeFields(req.fields) : normalizeFields(req.body);
+
+    // Files (if any) uploaded by formidable
     const files = req.files || {};
 
-    const { title, category, videoUrl, image } = fields;
-    const imageFile = files.image?.[0];
-    const videoFile = files.videoFile?.[0];
+    // Destructure expected fields
+    const { title, category, videoUrl, imageUrl } = fields;
 
-    // Debug log
+    // Extract file objects if they exist
+    const imageFile = files.imageFile?.[0];   // uploaded image file
+    const videoFile = files.videoFile?.[0];   // uploaded video file
+
+    // Debug logging (helps in production troubleshooting)
     console.log("=== DEBUG INFO ===");
-    console.log("Fields:", fields);
-    console.log("Files:", Object.keys(files));
+    console.log("Fields:", fields);                 // normalized text fields
+    console.log("Files:", Object.keys(files));      // which files were uploaded
     console.log("==================");
 
-    // Validate required fields
+    // ---------------- VALIDATIONS ----------------
     if (!title) return res.status(400).json({ message: "Title is required" });
     if (!category) return res.status(400).json({ message: "Category is required" });
 
     let finalImageUrl = "";
     let finalVideoUrl = "";
 
-    // ---- Handle image ----
-    if (image && isURL(image)) {
-      finalImageUrl = image; // URL provided
+    // ---------------- HANDLE IMAGE ----------------
+    if (imageUrl && isURL(imageUrl)) {
+      // Case 1: User provided an image URL
+      finalImageUrl = imageUrl;
     } else if (imageFile) {
+      // Case 2: User uploaded an image file
       const upload = await cloudinary.uploader.upload(imageFile.filepath, {
         folder: "products",
         resource_type: "auto",
@@ -50,21 +62,24 @@ export const createProduct = asyncHandler(async (req, res) => {
       return res.status(400).json({ message: "Image is required (URL or file)" });
     }
 
-    // ---- Handle video ----
+    // ---------------- HANDLE VIDEO ----------------
     if (videoUrl) {
+      // Case 1: User provided a video URL
       if (!isURL(videoUrl)) {
         return res.status(400).json({ message: "Invalid video URL format" });
       }
       finalVideoUrl = videoUrl;
     } else if (videoFile) {
+      // Case 2: User uploaded a video file
       const upload = await cloudinary.uploader.upload(videoFile.filepath, {
         folder: "products/videos",
         resource_type: "video",
       });
       finalVideoUrl = upload.secure_url;
     }
+    // If neither provided, finalVideoUrl will remain empty/null
 
-    // ---- Save to DB ----
+    // ---------------- SAVE TO DATABASE ----------------
     const product = await Product.create({
       title,
       category,
@@ -74,12 +89,15 @@ export const createProduct = asyncHandler(async (req, res) => {
 
     console.log("✅ Product created:", product._id);
 
+    // ---------------- RESPONSE ----------------
     res.status(201).json(product);
+
   } catch (error) {
     console.error("❌ Error in createProduct:", error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 
 
 
