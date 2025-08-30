@@ -4,7 +4,8 @@ const corsOptions = {
   const allowedOrigins = [
   'https://app.strategemmedia.com',
   'https://api.strategemmedia.com',
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'http://localhost:3000'
 ];
     console.log('CORS Origin:', origin); 
     if (!origin || allowedOrigins.includes(origin)) {
