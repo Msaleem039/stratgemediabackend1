@@ -4,32 +4,29 @@ const productSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
-    trim: true,
   },
-  videoUrl: {
-    type: String,
-    required: false, // Optional
-    trim: true,
-  },
-  videoFile: {
-    type: String,
-    required: false, // Optional
-    trim: true,
-  },
-  
-  category: {
+  type: {
     type: String,
     required: true,
-    trim: true,
+  },
+  price: {
+    type: String,
+    required: true,
+  },
+  button: {
+    type: String,
+    default: "BOOK NOW",
   },
   image: {
     type: String,
-    required: true,
+    required: false,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  inclusions: {
+    type: [String],
+    default: [],
   },
+}, {
+  timestamps: true,
 });
 
 const Product = mongoose.model("Product", productSchema);
