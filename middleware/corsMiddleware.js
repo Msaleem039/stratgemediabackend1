@@ -2,8 +2,10 @@ import cors from 'cors';
 const corsOptions = {
   origin: function (origin, callback) {
   const allowedOrigins = [
-  'https://app.strategemmedia.com',
-  'https://api.strategemmedia.com',
+  // 'https://app.strategemmedia.com',
+  // 'https://api.strategemmedia.com',
+  'https://fsroyaldesertsafaridubai.com',
+  'https://api.fsroyaldesertsafaridubai.com',
   'http://localhost:5173',
   'http://localhost:3000'
 ];
