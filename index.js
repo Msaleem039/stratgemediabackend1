@@ -8,7 +8,7 @@ dotenv.config();
 import corsMiddleware from './middleware/corsMiddleware.js'
 
 // Check for required environment variables
-if (!"erqdgkdsyrewit43252fgdskhfyrwehfdjkljytrigbgfgrw") {
+if (!process.env.JWT_SECRET) {
   console.error('FATAL ERROR: JWT_SECRET is not defined.');
   process.exit(1);
 }

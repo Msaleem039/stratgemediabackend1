@@ -19,7 +19,7 @@ export const authMiddleware = asyncHandler(async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
 
       // Verify token
-      const decoded = jwt.verify(token, "erqdgkdsyrewit43252fgdskhfyrwehfdjkljytrigbgfgrw");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Attach user to request (excluding password)
       req.user = await User.findById(decoded.id).select('-password');
