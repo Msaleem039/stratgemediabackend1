@@ -6,6 +6,7 @@ const corsOptions = {
       // 'https://api.strategemmedia.com',
       'https://fsroyaldesertsafaridubai.com',
       'https://api.fsroyaldesertsafaridubai.com',
+      'https://www.fsroyaldesertsafaridubai.com',
       'http://localhost:5173',
       'http://localhost:3000'
     ];
